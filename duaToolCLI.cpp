@@ -7,7 +7,7 @@ void list(path,std::ofstream&,int);
 
 
 int main(int argc, char* argv[]){
-	path p(argv[1]);   // p reads clearer than argv[1] in the following code
+	path p("C:\\");   // p reads clearer than argv[1] in the following code
 	const char* filename = "log.txt";
 	int indentCount = 0;
 
