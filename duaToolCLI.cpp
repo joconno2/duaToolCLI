@@ -1,20 +1,46 @@
 #include <iostream>
+#include <fstream>
 #include <boost/filesystem.hpp>
 using namespace boost::filesystem;
 
+void list(path,std::ofstream&);
+
+
 int main(int argc, char* argv[]){
 	path p(argv[1]);   // p reads clearer than argv[1] in the following code
+	const char* filename = "log.txt";
 
+	std::ofstream logFile;
+	logFile.open(filename);
+
+	list(p,logFile);
+
+	logFile.close();
+}
+
+
+void list(path p, std::ofstream& logFile){
 	try{
 		if (exists(p)){    // does p actually exist?
-		
-			if (is_regular_file(p))        // is p a regular file?   
-				std::cout << p << " size is " << file_size(p) << '\n';
 
-			else if (is_directory(p)){      // is p a directory?
-				std::cout << p << " is a directory containing:\n";
-				std::copy(directory_iterator(p), directory_iterator(),
-					std::ostream_iterator<directory_entry>(std::cout, "\n"));	
+			if (is_regular_file(p))        // is p a regular file?   
+				logFile << p << " size is " << file_size(p) << '\n';
+
+			else if (is_directory(p))      // is p a directory?
+			{
+				logFile << p << " is a directory containing:\n";
+
+				typedef std::vector<path> vec;             // store paths,
+				vec v;                                // so we can sort them later
+
+				copy(directory_iterator(p), directory_iterator(), back_inserter(v));
+				sort(v.begin(), v.end());
+
+				for (vec::const_iterator it(v.begin()); it != v.end(); ++it)
+					if (is_directory(*it))	// Only print size if not a directory, else recurse
+						list(*it,logFile);
+					else
+						logFile << "   " << *it << " --- " << file_size(*it) << '\n';
 			}
 			else
 				std::cout << p << " exists, but is neither a regular file nor a directory\n";
@@ -26,5 +52,4 @@ int main(int argc, char* argv[]){
 	catch (const filesystem_error& ex){
 		std::cout << ex.what() << '\n';
 	}
-	return 0;
 }
